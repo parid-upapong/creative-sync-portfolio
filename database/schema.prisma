@@ -1,0 +1,47 @@
+// Data model for the AI Portfolio Platform
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  sites         Site[]
+  createdAt     DateTime  @default(now())
+}
+
+model Asset {
+  id            String    @id @default(uuid())
+  url           String
+  type          String    // IMAGE, VIDEO, PDF
+  aiMetadata    Json?     // Stores: dominant colors, labels, EXIF
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id])
+}
+
+model Project {
+  id            String    @id @default(uuid())
+  title         String
+  description   String?
+  assets        Asset[]
+  siteId        String
+  site          Site      @relation(fields: [siteId], references: [id])
+}
+
+model Site {
+  id            String    @id @default(uuid())
+  subdomain     String    @unique
+  themeConfig   Json      // Stores generated: colors, fonts, layout_id
+  content       Json      // The AI-generated copy and structure
+  status        String    // BUILDING, READY, ERROR
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  projects      Project[]
+  publishedAt   DateTime?
+}
