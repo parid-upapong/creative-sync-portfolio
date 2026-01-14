@@ -1,0 +1,49 @@
+// Database schema representing the core entities of the AI Portfolio Platform
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  name          String?
+  portfolio     Portfolio?
+  createdAt     DateTime    @default(now())
+}
+
+model Portfolio {
+  id            String      @id @default(cuid())
+  userId        String      @unique
+  user          User        @relation(fields: [userId], references: [id])
+  slug          String      @unique // e.g., "john-doe-design"
+  themeConfig   Json        // Stores AI-generated styles (colors, fonts, spacing)
+  projects      Project[]
+  published     Boolean     @default(false)
+  lastGenerated DateTime    @updatedAt
+}
+
+model Project {
+  id            String      @id @default(cuid())
+  portfolioId   String
+  portfolio     Portfolio   @relation(fields: [portfolioId], references: [id])
+  title         String
+  description   String?     @db.Text
+  category      String?     // AI-inferred category
+  assets        Asset[]
+  order         Int         @default(0)
+}
+
+model Asset {
+  id            String      @id @default(cuid())
+  projectId     String
+  project       Project     @relation(fields: [projectId], references: [id])
+  url           String
+  type          String      // IMAGE, VIDEO, PDF
+  aiAnalysis    Json?       // Stores extracted labels, colors, and descriptions
+}
