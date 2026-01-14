@@ -1,0 +1,2 @@
+kubectl apply -f k8s/cv-service-deployment.yaml
+kubectl autoscale deployment cv-service --cpu-percent=70 --min=2 --max=10
