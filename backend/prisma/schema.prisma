@@ -1,0 +1,65 @@
+// This is the data model for the AI Portfolio Platform
+// It handles the relationship between users, their creative projects, and the AI-generated templates.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  projects      Project[]
+  siteConfig    SiteConfig?
+  createdAt     DateTime  @default(now())
+}
+
+model Project {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  title           String
+  description     String?
+  assets          Asset[]
+  aiMetadata      Json?    // Stores the output from CV Service (tags, color palettes)
+  displayOrder    Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Asset {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  url         String
+  type        String   // IMAGE, VIDEO, PDF
+  mimeType    String
+  width       Int?
+  height      Int?
+  altText     String?
+  analysis    Json?    // Detailed CV analysis (objects detected, dominant colors)
+}
+
+model Template {
+  id            String   @id @default(uuid())
+  slug          String   @unique // e.g., 'minimalist-dark', 'brutalist-grid'
+  name          String
+  componentPath String   // Reference to the Frontend layout component
+  configSchema  Json     // Defines supported slots and style variables
+  isActive      Boolean  @default(true)
+}
+
+model SiteConfig {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  templateId    String
+  layoutEngine  Json     // The JSON output from the AI Layout Composition Engine
+  customDomain  String?  @unique
+  published     Boolean  @default(false)
+}
