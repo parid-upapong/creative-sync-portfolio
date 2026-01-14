@@ -1,0 +1,6 @@
+cd backend
+npm install
+cp .env.example .env
+# Update DATABASE_URL for your local Postgres
+npx prisma migrate dev
+npm run start:dev
